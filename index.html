@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>كل عام وأنتِ بخير يا شيخه</title>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&family=Tajawal:wght@500;700;900&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', 'Tajawal', sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background: #070913;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .bg-particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(circle at 50% 30%, #1a103c 0%, #070913 80%);
+    }
+
+    .glow-sphere {
+      position: absolute;
+      width: 350px;
+      height: 350px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(0,0,0,0) 70%);
+      filter: blur(40px);
+      animation: floatGlow 8s infinite alternate ease-in-out;
+    }
+
+    @keyframes floatGlow {
+      0% { transform: translate(-20px, -20px) scale(1); }
+      100% { transform: translate(30px, 30px) scale(1.2); }
+    }
+
+    .screen {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 520px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .fade-out {
+      opacity: 0;
+      transform: scale(0.9) translateY(-20px);
+      pointer-events: none;
+    }
+
+    /* --- المرحلة الأولى --- */
+    .main-title {
+      font-size: 2.2rem;
+      font-weight: 900;
+      text-align: center;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #00f2fe 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shineText 3s linear infinite, bounceTitle 2s ease-in-out infinite;
+      margin-bottom: 25px;
+      text-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+    }
+
+    @keyframes shineText {
+      to { background-position: 200% center; }
+    }
+
+    @keyframes bounceTitle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .cake-container {
+      position: relative;
+      margin: 20px 0;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .cake-container:hover {
+      transform: scale(1.05) rotate(2deg);
+    }
+
+    .cake-svg {
+      width: 180px;
+      filter: drop-shadow(0 10px 20px rgba(168, 85, 247, 0.4));
+    }
+
+    .btn-action {
+      margin-top: 25px;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      color: #000;
+      font-size: 1.3rem;
+      font-weight: 800;
+      padding: 16px 45px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(0, 242, 254, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.5);
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-action:hover {
+      transform: scale(1.08) translateY(-3px);
+      box-shadow: 0 0 40px rgba(0, 242, 254, 0.8);
+    }
+
+    /* --- المرحلة الثانية --- */
+    .fav-header {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #00f2fe;
+      margin-bottom: 20px;
+      text-align: center;
+      text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+    }
+
+    .cards-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .fav-card {
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 16px;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      opacity: 0;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .fav-card.slide-right {
+      animation: crashInRight 0.75s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+    }
+
+    .fav-card.slide-left {
+      animation: crashInLeft 0.75s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+    }
+
+    @keyframes crashInRight {
+      0% { opacity: 0; transform: translateX(350px) scale(1.3) rotate(15deg); }
+      60% { opacity: 1; transform: translateX(-20px) scale(0.95) rotate(-5deg); }
+      75% { transform: translateX(12px) scale(1.03) rotate(3deg); }
+      90% { transform: translateX(-5px) scale(0.99) rotate(-1deg); }
+      100% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); }
+    }
+
+    @keyframes crashInLeft {
+      0% { opacity: 0; transform: translateX(-350px) scale(1.3) rotate(-15deg); }
+      60% { opacity: 1; transform: translateX(20px) scale(0.95) rotate(5deg); }
+      75% { transform: translateX(-12px) scale(1.03) rotate(-3deg); }
+      90% { transform: translateX(5px) scale(0.99) rotate(1deg); }
+      100% { opacity: 1; transform: translateX(0) scale(1) rotate(0deg); }
+    }
+
+    .card-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+
+    .card-value {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #00f2fe;
+      text-shadow: 0 0 10px rgba(0, 242, 254, 0.4);
+    }
+
+    /* --- المرحلة الثالثة: الهدية والمشغل --- */
+    .gift-wrapper {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      cursor: pointer;
+      margin: 15px 0;
+      perspective: 1000px;
+    }
+
+    .gift-box {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: pulseGift 2s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseGift {
+      0% { transform: scale(1) rotate(-2deg); }
+      100% { transform: scale(1.08) rotate(2deg); }
+    }
+
+    .gift-body {
+      position: absolute;
+      width: 100%;
+      height: 80%;
+      bottom: 0;
+      background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(168, 85, 247, 0.4);
+    }
+
+    .gift-ribbon-v {
+      position: absolute;
+      width: 20px;
+      height: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #00f2fe;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+    }
+
+    .gift-ribbon-h {
+      position: absolute;
+      width: 100%;
+      height: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #00f2fe;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.6);
+    }
+
+    .gift-lid {
+      position: absolute;
+      width: 110%;
+      height: 30px;
+      left: -5%;
+      top: 10%;
+      background: linear-gradient(135deg, #c084fc 0%, #818cf8 100%);
+      border-radius: 8px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 2;
+    }
+
+    .gift-wrapper.open .gift-lid {
+      transform: translateY(-80px) rotate(-25deg) scale(0.9);
+      opacity: 0;
+    }
+
+    .gift-wrapper.open .gift-box {
+      animation: none;
+    }
+
+    .letter-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+      margin-top: 15px;
+      opacity: 0;
+      transform: translateY(30px) scale(0.9);
+      transition: all 0.6s ease;
+    }
+
+    .letter-card.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .letter-text {
+      font-size: 1.25rem;
+      line-height: 1.9;
+      color: #f1f5f9;
+      font-weight: 600;
+      text-align: right;
+      min-height: 110px;
+    }
+
+    .typing-cursor {
+      display: inline-block;
+      width: 3px;
+      height: 20px;
+      background: #00f2fe;
+      margin-right: 5px;
+      animation: blink 0.7s infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .music-player {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: 20px;
+      padding: 18px 22px;
+      margin-top: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .player-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .song-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #00f2fe;
+    }
+
+    .visualizer {
+      display: flex;
+      align-items: flex-end;
+      gap: 4px;
+      height: 25px;
+    }
+
+    .bar {
+      width: 4px;
+      height: 8px;
+      background: #00f2fe;
+      border-radius: 2px;
+    }
+
+    .visualizer.playing .bar {
+      animation: wave 0.6s infinite alternate ease-in-out;
+    }
+
+    .visualizer.playing .bar:nth-child(1) { animation-delay: 0.1s; }
+    .visualizer.playing .bar:nth-child(2) { animation-delay: 0.3s; }
+    .visualizer.playing .bar:nth-child(3) { animation-delay: 0.2s; }
+    .visualizer.playing .bar:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes wave {
+      0% { height: 6px; }
+      100% { height: 24px; }
+    }
+
+    .player-controls {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .play-btn {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+      border: none;
+      color: #000;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.5);
+    }
+
+    .progress-container {
+      flex: 1;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      width: 0%;
+      height: 100%;
+      background: #00f2fe;
+      box-shadow: 0 0 10px #00f2fe;
+    }
+
+    /* --- المرحلة الرابعة: العرض الشامل قبل النهاية --- */
+    .summary-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+      animation: zoomIn 0.8s ease forwards;
+    }
+
+    @keyframes zoomIn {
+      0% { opacity: 0; transform: scale(0.8); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .summary-title {
+      font-size: 1.6rem;
+      color: #a855f7;
+      font-weight: 800;
+      margin-bottom: 12px;
+      text-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+    }
+
+    /* --- الشاشة السوداء النهائية والاحتفال --- */
+    .final-black-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #020205 !important;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .end-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid rgba(0, 242, 254, 0.5);
+      border-radius: 25px;
+      padding: 40px 30px;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(0, 242, 254, 0.3), inset 0 0 20px rgba(0, 242, 254, 0.1);
+      animation: glowBox 3s infinite alternate ease-in-out;
+      max-width: 90%;
+      width: 420px;
+    }
+
+    @keyframes glowBox {
+      0% { box-shadow: 0 0 30px rgba(0, 242, 254, 0.3); }
+      100% { box-shadow: 0 0 60px rgba(168, 85, 247, 0.6); }
+    }
+
+    .end-text {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 15px;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    }
+
+    .credits-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #00f2fe;
+      letter-spacing: 1px;
+      text-shadow: 0 0 12px rgba(0, 242, 254, 0.6);
+    }
+
+    /* بالونات متصاعدة في شاشة النهاية */
+    .balloon {
+      position: absolute;
+      bottom: -100px;
+      width: 40px;
+      height: 50px;
+      border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+      animation: floatUp 8s linear infinite;
+      opacity: 0.8;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0.8; }
+      100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-particles">
+    <div class="glow-sphere" style="top:20%; left:20%;"></div>
+    <div class="glow-sphere" style="bottom:20%; right:20%; background: radial-gradient(circle, rgba(0, 242, 254, 0.2) 0%, rgba(0,0,0,0) 70%);"></div>
+  </div>
+
+  <!-- الشاشة 1: الكعكة والتهنئة -->
+  <div id="screen1" class="screen">
+    <h1 class="main-title">كل عام وأنتِ بخير يا شيخه 💖✨</h1>
+    
+    <div class="cake-container" onclick="triggerConfetti()">
+      <svg class="cake-svg" viewBox="0 0 200 200">
+        <path d="M 50 150 L 150 150 L 140 100 L 60 100 Z" fill="#3b82f6" opacity="0.8"/>
+        <path d="M 60 100 L 140 100 L 130 60 L 70 60 Z" fill="#a855f7" opacity="0.9"/>
+        <rect x="96" y="30" width="8" height="30" fill="#fff" rx="3"/>
+        <circle cx="100" cy="22" r="7" fill="#ff007f">
+          <animate attributeName="r" values="6;9;6" dur="0.6s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="100" cy="22" r="4" fill="#ffea00"/>
+      </svg>
+    </div>
+
+    <button class="btn-action" onclick="goToFavorites()">
+      <span>استكمل</span>
+      <span>⚡</span>
+    </button>
+  </div>
+
+  <!-- الشاشة 2: المفضلات -->
+  <div id="screen2" class="screen hidden">
+    <h2 class="fav-header">🌟 الأشياء المفضلة 🌟</h2>
+    
+    <div class="cards-list">
+      <div class="fav-card" data-dir="right"><div class="card-label">👤 الشخص:</div><div class="card-value">خالتي</div></div>
+      <div class="fav-card" data-dir="left"><div class="card-label">🎮 اللعبة:</div><div class="card-value">ايفيد</div></div>
+      <div class="fav-card" data-dir="right"><div class="card-label">🏎️ السيارة:</div><div class="card-value">كامري</div></div>
+      <div class="fav-card" data-dir="left"><div class="card-label">🍕 الأكل:</div><div class="card-value">شاورما</div></div>
+      <div class="fav-card" data-dir="right"><div class="card-label">🎨 اللون:</div><div class="card-value">أزرق كحلي</div></div>
+      <div class="fav-card" data-dir="left"><div class="card-label">⚽ الهواية:</div><div class="card-value">ركوب الخيل</div></div>
+      <div class="fav-card" data-dir="right"><div class="card-label">🧋 المشروب:</div><div class="card-value">دولجي لجي</div></div>
+      <div class="fav-card" data-dir="left"><div class="card-label">✈️ المكان:</div><div class="card-value">الرياض</div></div>
+      <div class="fav-card" data-dir="right"><div class="card-label">🎬 الفيلم:</div><div class="card-value">أنمي</div></div>
+      <div class="fav-card" data-dir="left"><div class="card-label">🌙 الوقت:</div><div class="card-value">وقت الغروب 🌅</div></div>
+    </div>
+
+    <button class="btn-action" style="margin-top:25px;" onclick="goToGiftScreen()">
+      <span>استكمل 🟢</span>
+    </button>
+  </div>
+
+  <!-- الشاشة 3: الهدية والمشغل -->
+  <div id="screen3" class="screen hidden">
+    <h2 class="fav-header">🎁 اضغطي على الهدية لفتح الرسالة 🎁</h2>
+
+    <div class="gift-wrapper" id="giftWrapper" onclick="openGift()">
+      <div class="gift-box">
+        <div class="gift-lid"><div class="gift-ribbon-v"></div></div>
+        <div class="gift-body"><div class="gift-ribbon-v"></div><div class="gift-ribbon-h"></div></div>
+      </div>
+    </div>
+
+    <div class="letter-card" id="letterCard">
+      <div class="letter-text" id="letterText"></div>
+    </div>
+
+    <div class="music-player">
+      <div class="player-info">
+        <span class="song-title">🎵 أغنية عيد الميلاد</span>
+        <div class="visualizer" id="visualizer">
+          <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+      </div>
+      <div class="player-controls">
+        <button class="play-btn" id="playBtn" onclick="toggleAudio()">▶</button>
+        <div class="progress-container" onclick="seekAudio(event)">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-action" style="margin-top:25px;" onclick="goToSummaryScreen()">
+      <span>استكمل المعرض 🚀</span>
+    </button>
+
+    <audio id="bgAudio" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+  </div>
+
+  <!-- الشاشة 4: المعرض والملخص الشامل -->
+  <div id="screen4" class="screen hidden">
+    <div class="summary-card">
+      <h3 class="summary-title">✨ ملخص الاحتفال ✨</h3>
+      <p style="line-height: 1.8; color: #cbd5e1; font-size: 1.1rem;">
+        أجمل التهاني والأحنيات مع كل الأشياء المفضلة والرسالة القلبية في صفحة واحدة مميزة!
+      </p>
+    </div>
+
+    <h2 style="font-size: 2rem; color: #00f2fe; font-weight: 900; margin: 20px 0; text-shadow: 0 0 20px rgba(0,242,254,0.6);">
+      كل سنة وأنتِ طيبة 🎉💖
+    </h2>
+
+    <button class="btn-action" onclick="finishAndShowBlackScreen()">
+      <span>إنهاء 🏁</span>
+    </button>
+  </div>
+
+  <script>
+    function triggerConfetti() {
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+    }
+
+    function goToFavorites() {
+      const s1 = document.getElementById('screen1');
+      const s2 = document.getElementById('screen2');
+      s1.classList.add('fade-out');
+
+      setTimeout(() => {
+        s1.classList.add('hidden');
+        s2.classList.remove('hidden');
+
+        const cards = document.querySelectorAll('.fav-card');
+        cards.forEach((card, index) => {
+          setTimeout(() => {
+            const dir = card.getAttribute('data-dir');
+            if (dir === 'right') card.classList.add('slide-right');
+            else card.classList.add('slide-left');
+          }, index * 180);
+        });
+
+        triggerConfetti();
+      }, 500);
+    }
+
+    function goToGiftScreen() {
+      const s2 = document.getElementById('screen2');
+      const s3 = document.getElementById('screen3');
+      s2.classList.add('fade-out');
+
+      setTimeout(() => {
+        s2.classList.add('hidden');
+        s3.classList.remove('hidden');
+        triggerConfetti();
+      }, 500);
+    }
+
+    function goToSummaryScreen() {
+      const s3 = document.getElementById('screen3');
+      const s4 = document.getElementById('screen4');
+      s3.classList.add('fade-out');
+
+      setTimeout(() => {
+        s3.classList.add('hidden');
+        s4.classList.remove('hidden');
+        triggerConfetti();
+      }, 500);
+    }
+
+    let giftOpened = false;
+    const messageText = "كل عام وأنتِ بخير يا شيخه، وإن شاء الله طول العمر وحياة جميلة وسعيدة بعيدة عن المشاكل، وإن شاء الله تنجحين في الدراسة. شكراً لكِ على وقتكِ الثمين. ❤️✨";
+
+    function openGift() {
+      if (giftOpened) return;
+      giftOpened = true;
+
+      const gift = document.getElementById('giftWrapper');
+      const letter = document.getElementById('letterCard');
+      
+      gift.classList.add('open');
+      triggerConfetti();
+
+      setTimeout(() => {
+        letter.classList.add('show');
+        typeWriter(messageText, 'letterText');
+      }, 400);
+    }
+
+    function typeWriter(text, elementId) {
+      const el = document.getElementById(elementId);
+      el.innerHTML = '<span class="typing-cursor"></span>';
+      let i = 0;
+
+      function type() {
+        if (i < text.length) {
+          const currentText = text.substring(0, i + 1);
+          el.innerHTML = currentText + '<span class="typing-cursor"></span>';
+          i++;
+          setTimeout(type, 45);
+        } else {
+          el.innerHTML = text;
+        }
+      }
+      type();
+    }
+
+    const audio = document.getElementById('bgAudio');
+    const playBtn = document.getElementById('playBtn');
+    const visualizer = document.getElementById('visualizer');
+    const progressBar = document.getElementById('progressBar');
+
+    function toggleAudio() {
+      if (audio.paused) {
+        audio.play();
+        playBtn.innerText = '⏸';
+        visualizer.classList.add('playing');
+      } else {
+        audio.pause();
+        playBtn.innerText = '▶';
+        visualizer.classList.remove('playing');
+      }
+    }
+
+    audio.ontimeupdate = () => {
+      if (audio.duration) {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.width = pct + '%';
+      }
+    };
+
+    function seekAudio(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const width = rect.width;
+      audio.currentTime = (clickX / width) * audio.duration;
+    }
+
+    // الشاشة السوداء النهائية والاحتفالية بالبالونات
+    function finishAndShowBlackScreen() {
+      audio.pause();
+      document.body.innerHTML = `
+        <div class="final-black-screen">
+          <div class="end-box">
+            <h1 class="end-text">كل سنة وأنتِ طيبة 🎈✨</h1>
+            <p class="credits-text">تم تطوير البرنامج من قبل خالد 💻</p>
+          </div>
+        </div>
+      `;
+
+      // إطلاق كنفيتي واحتفال مستمر
+      setInterval(() => {
+        confetti({
+          particleCount: 50,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 }
+        });
+        confetti({
+          particleCount: 50,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 }
+        });
+      }, 2000);
+
+      // توليد بالونات متصاعدة
+      const colors = ['#00f2fe', '#a855f7', '#ff007f', '#ffea00', '#4facfe'];
+      const container = document.querySelector('.final-black-screen');
+      
+      for (let i = 0; i < 20; i++) {
+        const balloon = document.createElement('div');
+        balloon.className = 'balloon';
+        balloon.style.left = Math.random() * 100 + 'vw';
+        balloon.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        balloon.style.animationDelay = Math.random() * 5 + 's';
+        balloon.style.animationDuration = (6 + Math.random() * 4) + 's';
+        container.appendChild(balloon);
+      }
+    }
+
+    window.onload = () => {
+      triggerConfetti();
+    };
+  </script>
+</body>
+</html>
